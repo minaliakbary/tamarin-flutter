@@ -1,4 +1,5 @@
 
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -12,74 +13,139 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: CounterPage(),
+      title: 'Shopping List',
+      home: const ShoppingPage(),
     );
   }
 }
 
-class CounterPage extends StatefulWidget {
-  const CounterPage({super.key});
+class ShoppingPage extends StatefulWidget {
+  const ShoppingPage({super.key});
 
   @override
-  State<CounterPage> createState() => _CounterPageState();
+  State<ShoppingPage> createState() => _ShoppingPageState();
 }
 
-class _CounterPageState extends State<CounterPage> {
+class _ShoppingPageState extends State<ShoppingPage> {
+  List<String> shoppingList = [];
 
-  // تابع شمارنده با حفظ مقدار قبلی
-  Function counter() {
-    int count = 0;
+  TextEditingController controller = TextEditingController();
 
-    return () {
-      count++;
-      return count;
-    };
+  // اضافه کردن کالا به لیست
+  void addItem() {
+    String item = controller.text.trim();
+
+    if (item.isNotEmpty) {
+      setState(() {
+        shoppingList.add(item);
+      });
+
+      controller.clear();
+    }
   }
 
-  late final Function getCounter;
-
-  @override
-  void initState() {
-    super.initState();
-    getCounter = counter();
-  }
-
-  int result = 0;
-
-  void increaseCounter() {
+  // حذف کالا از لیست
+  void removeItem(int index) {
     setState(() {
-      result = getCounter();
+      shoppingList.removeAt(index);
     });
+  }
+
+  // نمایش لیست نهایی
+  void showFinalList() {
+    String result = shoppingList.isEmpty
+        ? 'لیست خرید خالی است!'
+        : shoppingList.join('\n');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('لیست خرید نهایی'),
+          content: Text(result),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('بستن'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Persistent Counter'),
-        backgroundColor: Colors.pink,
+        title: const Text('لیست خرید من'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
-      body: Center(
+
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Counter Value:',
-              style: TextStyle(fontSize: 22),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              '$result',
-              style: const TextStyle(
-                fontSize: 50,
-                fontWeight: FontWeight.bold,
-                color: Colors.pink,
+
+            // فیلد ورود کالا
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'نام کالا را وارد کنید',
+                border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 30),
+
+            const SizedBox(height: 10),
+
+            // دکمه اضافه کردن
             ElevatedButton(
-              onPressed: increaseCounter,
-              child: const Text('Increase Counter'),
+              onPressed: addItem,
+              child: const Text('اضافه کردن کالا'),
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              'اقلام لیست خرید:',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // نمایش اقلام لیست
+            Expanded(
+              child: ListView.builder(
+                itemCount: shoppingList.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(shoppingList[index]),
+
+                    trailing: IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                      ),
+                      onPressed: () {
+                        removeItem(index);
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // نمایش لیست نهایی
+            ElevatedButton(
+              onPressed: showFinalList,
+              child: const Text('نمایش لیست خرید نهایی'),
             ),
           ],
         ),

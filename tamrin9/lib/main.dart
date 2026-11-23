@@ -1,5 +1,4 @@
 
-
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,142 +12,102 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Shopping List',
-      home: const ShoppingPage(),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('محاسبه تخفیف'),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: DiscountCalculator(),
+        ),
+      ),
     );
   }
 }
 
-class ShoppingPage extends StatefulWidget {
-  const ShoppingPage({super.key});
+class DiscountCalculator extends StatefulWidget {
+  const DiscountCalculator({super.key});
 
   @override
-  State<ShoppingPage> createState() => _ShoppingPageState();
+  State<DiscountCalculator> createState() =>
+      _DiscountCalculatorState();
 }
 
-class _ShoppingPageState extends State<ShoppingPage> {
-  List<String> shoppingList = [];
+class _DiscountCalculatorState extends State<DiscountCalculator> {
+  final TextEditingController priceController =
+      TextEditingController();
 
-  TextEditingController controller = TextEditingController();
+  final TextEditingController discountController =
+      TextEditingController();
 
-  // اضافه کردن کالا به لیست
-  void addItem() {
-    String item = controller.text.trim();
+  String result = '';
 
-    if (item.isNotEmpty) {
-      setState(() {
-        shoppingList.add(item);
-      });
+  void calculateDiscount() {
+    // دریافت اطلاعات به صورت رشته
+    String priceText = priceController.text;
+    String discountText = discountController.text;
 
-      controller.clear();
-    }
-  }
+    // تبدیل رشته به عدد
+    double price = double.parse(priceText);
+    double discount = double.parse(discountText);
 
-  // حذف کالا از لیست
-  void removeItem(int index) {
+    // محاسبه مبلغ تخفیف
+    double discountAmount = price * discount / 100;
+
+    // محاسبه قیمت نهایی
+    double finalPrice = price - discountAmount;
+
     setState(() {
-      shoppingList.removeAt(index);
+      result = 'مبلغ تخفیف: $discountAmount تومان\n'
+          'مبلغ نهایی: $finalPrice تومان';
     });
-  }
-
-  // نمایش لیست نهایی
-  void showFinalList() {
-    String result = shoppingList.isEmpty
-        ? 'لیست خرید خالی است!'
-        : shoppingList.join('\n');
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('لیست خرید نهایی'),
-          content: Text(result),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('بستن'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('لیست خرید من'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
-
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-
-        child: Column(
-          children: [
-
-            // فیلد ورود کالا
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'نام کالا را وارد کنید',
-                border: OutlineInputBorder(),
-              ),
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextField(
+            controller: priceController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'قیمت محصول',
+              border: OutlineInputBorder(),
             ),
+          ),
 
-            const SizedBox(height: 10),
+          const SizedBox(height: 20),
 
-            // دکمه اضافه کردن
-            ElevatedButton(
-              onPressed: addItem,
-              child: const Text('اضافه کردن کالا'),
+          TextField(
+            controller: discountController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'درصد تخفیف',
+              border: OutlineInputBorder(),
             ),
+          ),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-            const Text(
-              'اقلام لیست خرید:',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+          ElevatedButton(
+            onPressed: calculateDiscount,
+            child: const Text('محاسبه تخفیف'),
+          ),
+
+          const SizedBox(height: 20),
+
+          Text(
+            result,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
-
-            const SizedBox(height: 10),
-
-            // نمایش اقلام لیست
-            Expanded(
-              child: ListView.builder(
-                itemCount: shoppingList.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(shoppingList[index]),
-
-                    trailing: IconButton(
-                      icon: const Icon(
-                        Icons.delete,
-                        color: Colors.red,
-                      ),
-                      onPressed: () {
-                        removeItem(index);
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            // نمایش لیست نهایی
-            ElevatedButton(
-              onPressed: showFinalList,
-              child: const Text('نمایش لیست خرید نهایی'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
